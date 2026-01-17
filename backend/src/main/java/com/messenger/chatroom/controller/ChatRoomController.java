@@ -4,8 +4,10 @@ import com.messenger.chatroom.dto.ChatRoomRequest;
 import com.messenger.chatroom.dto.ChatRoomResponse;
 import com.messenger.chatroom.dto.RoomMemberResponse;
 import com.messenger.chatroom.service.ChatRoomService;
+import com.messenger.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,14 +24,14 @@ public class ChatRoomController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<ChatRoomResponse> createRoom(
-            @RequestHeader("X-User-Id") UUID userId,
+            @AuthenticationPrincipal User user,
             @RequestBody ChatRoomRequest request) {
-        return chatRoomService.createRoom(userId, request);
+        return chatRoomService.createRoom(user.getId(), request);
     }
 
     @GetMapping
-    public Flux<ChatRoomResponse> getRooms(@RequestHeader("X-User-Id") UUID userId) {
-        return chatRoomService.getRoomsByUserId(userId);
+    public Flux<ChatRoomResponse> getRooms(@AuthenticationPrincipal User user) {
+        return chatRoomService.getRoomsByUserId(user.getId());
     }
 
     @GetMapping("/{roomId}")
@@ -40,17 +42,17 @@ public class ChatRoomController {
     @PutMapping("/{roomId}")
     public Mono<ChatRoomResponse> updateRoom(
             @PathVariable UUID roomId,
-            @RequestHeader("X-User-Id") UUID userId,
+            @AuthenticationPrincipal User user,
             @RequestBody ChatRoomRequest request) {
-        return chatRoomService.updateRoom(roomId, userId, request);
+        return chatRoomService.updateRoom(roomId, user.getId(), request);
     }
 
     @DeleteMapping("/{roomId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteRoom(
             @PathVariable UUID roomId,
-            @RequestHeader("X-User-Id") UUID userId) {
-        return chatRoomService.deleteRoom(roomId, userId);
+            @AuthenticationPrincipal User user) {
+        return chatRoomService.deleteRoom(roomId, user.getId());
     }
 
     @PostMapping("/{roomId}/members")

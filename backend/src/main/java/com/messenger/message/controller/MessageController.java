@@ -4,8 +4,10 @@ import com.messenger.message.dto.MessagePageResponse;
 import com.messenger.message.dto.MessageRequest;
 import com.messenger.message.dto.MessageResponse;
 import com.messenger.message.service.MessageService;
+import com.messenger.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -22,9 +24,9 @@ public class MessageController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MessageResponse> sendMessage(
             @PathVariable UUID roomId,
-            @RequestHeader("X-User-Id") UUID userId,
+            @AuthenticationPrincipal User user,
             @RequestBody MessageRequest request) {
-        return messageService.sendMessage(roomId, userId, request);
+        return messageService.sendMessage(roomId, user.getId(), request);
     }
 
     @GetMapping("/rooms/{roomId}/messages")
@@ -39,7 +41,7 @@ public class MessageController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteMessage(
             @PathVariable UUID messageId,
-            @RequestHeader("X-User-Id") UUID userId) {
-        return messageService.deleteMessage(messageId, userId);
+            @AuthenticationPrincipal User user) {
+        return messageService.deleteMessage(messageId, user.getId());
     }
 }
