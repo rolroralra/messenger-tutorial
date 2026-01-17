@@ -9,10 +9,12 @@ Spring WebFlux 기반의 리액티브 실시간 채팅 서버입니다.
 | Java | 21+ | LTS 버전 |
 | Spring Boot | 3.5.0 | 프레임워크 |
 | Spring WebFlux | - | 리액티브 웹 |
+| Spring Security | - | 인증/인가 |
 | Spring Data R2DBC | - | 리액티브 DB 접근 |
 | Spring Data Redis Reactive | - | 리액티브 Redis |
 | PostgreSQL | 16 | 메인 데이터베이스 |
 | Valkey | 8 | Redis 호환 캐시/Pub-Sub |
+| JWT (jjwt) | 0.12.6 | 토큰 기반 인증 |
 | Lombok | - | 보일러플레이트 제거 |
 | Testcontainers | - | 통합 테스트 |
 
@@ -26,7 +28,15 @@ backend/
 │   │   ├── CorsConfig.java            # CORS 설정
 │   │   ├── DatabaseConfig.java        # R2DBC 스키마 초기화
 │   │   ├── RedisConfig.java           # Redis 템플릿 설정
+│   │   ├── SecurityConfig.java        # Spring Security 설정
 │   │   └── WebSocketConfig.java       # WebSocket 핸들러 매핑
+│   ├── auth/                          # 인증 도메인
+│   │   ├── controller/AuthController.java
+│   │   ├── dto/
+│   │   ├── filter/JwtAuthenticationFilter.java
+│   │   └── service/
+│   │       ├── AuthService.java       # OAuth 인증 로직
+│   │       └── JwtService.java        # JWT 토큰 처리
 │   ├── common/exception/              # 공통 예외 처리
 │   │   ├── BusinessException.java
 │   │   └── GlobalExceptionHandler.java
@@ -90,6 +100,23 @@ Testcontainers를 사용하여 실제 PostgreSQL 컨테이너에서 테스트가
 
 Base URL: `http://localhost:8080/api/v1`
 
+### 인증 (Auth)
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| GET | `/auth/google` | Google OAuth URL 반환 |
+| GET | `/auth/oauth2/callback/google` | Google OAuth 콜백 (리다이렉트) |
+| GET | `/auth/callback/google?code={code}` | Google OAuth 콜백 (JSON) |
+| POST | `/auth/refresh` | Access Token 갱신 |
+| GET | `/auth/me` | 현재 로그인 사용자 정보 |
+| POST | `/auth/logout` | 로그아웃 |
+
+> **인증 흐름**
+> 1. `/auth/google` 호출 → Google 로그인 URL 반환
+> 2. 사용자가 Google 로그인 완료 → `/auth/oauth2/callback/google`로 리다이렉트
+> 3. 서버에서 JWT 토큰 발급 → 프론트엔드로 리다이렉트
+> 4. 이후 API 호출 시 `Authorization: Bearer {token}` 헤더 사용
+
 ### 사용자 (User)
 
 | Method | Endpoint | 설명 |
@@ -103,7 +130,7 @@ Base URL: `http://localhost:8080/api/v1`
 
 ### 채팅방 (ChatRoom)
 
-> 모든 요청에 `X-User-Id` 헤더 필요
+> 모든 요청에 `Authorization: Bearer {token}` 헤더 필요
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
@@ -118,7 +145,7 @@ Base URL: `http://localhost:8080/api/v1`
 
 ### 메시지 (Message)
 
-> 모든 요청에 `X-User-Id` 헤더 필요
+> 모든 요청에 `Authorization: Bearer {token}` 헤더 필요
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
@@ -138,8 +165,10 @@ Base URL: `http://localhost:8080/api/v1`
 ### 연결
 
 ```
-ws://localhost:8080/ws/chat?userId={userId}
+ws://localhost:8080/ws/chat?token={accessToken}
 ```
+
+> JWT Access Token을 쿼리 파라미터로 전달합니다.
 
 ### 메시지 타입
 
@@ -232,10 +261,36 @@ spring:
     redis:
       host: localhost
       port: 6379
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
 
 server:
   port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:your-secret-key}
+  access-token-expiry: 3600000   # 1시간
+  refresh-token-expiry: 604800000 # 7일
+
+app:
+  oauth:
+    google:
+      redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/v1/auth/oauth2/callback/google}
 ```
+
+### 환경변수
+
+| 변수 | 필수 | 설명 |
+|------|------|------|
+| `GOOGLE_CLIENT_ID` | Yes | Google OAuth 클라이언트 ID |
+| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth 클라이언트 시크릿 |
+| `GOOGLE_REDIRECT_URI` | No | OAuth 콜백 URL (기본값: localhost) |
+| `JWT_SECRET` | No | JWT 서명 키 (기본값: 내장) |
 
 ### Docker Compose 서비스
 
