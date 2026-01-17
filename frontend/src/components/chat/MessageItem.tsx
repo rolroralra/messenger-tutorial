@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useChatStore } from '@/stores/useChatStore';
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
+import { getAvatarUrl } from '@/lib/avatar';
 
 interface MessageItemProps {
   message: Message;
@@ -28,7 +29,7 @@ export const MessageItem = memo(function MessageItem({ message }: MessageItemPro
       )}
     >
       <Avatar className="h-8 w-8 flex-shrink-0">
-        <AvatarImage src={message.sender.avatarUrl} />
+        <AvatarImage src={getAvatarUrl(message.sender.id)} />
         <AvatarFallback>
           {message.sender.displayName.charAt(0).toUpperCase()}
         </AvatarFallback>

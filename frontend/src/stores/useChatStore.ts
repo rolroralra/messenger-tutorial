@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { roomApi } from '@/api';
 import type { Message, ChatRoom, User } from '@/types';
 
 interface ChatState {
@@ -14,6 +15,7 @@ interface ChatState {
   rooms: ChatRoom[];
   setRooms: (rooms: ChatRoom[]) => void;
   addRoom: (room: ChatRoom) => void;
+  fetchRooms: () => Promise<void>;
 
   // 메시지 (roomId별로 관리)
   messagesByRoom: Record<string, Message[]>;
@@ -46,6 +48,14 @@ export const useChatStore = create<ChatState>((set) => ({
   rooms: [],
   setRooms: (rooms) => set({ rooms }),
   addRoom: (room) => set((state) => ({ rooms: [...state.rooms, room] })),
+  fetchRooms: async () => {
+    try {
+      const rooms = await roomApi.getAll();
+      set({ rooms });
+    } catch (error) {
+      console.error('Failed to fetch rooms:', error);
+    }
+  },
 
   // 메시지
   messagesByRoom: {},
@@ -85,7 +95,7 @@ export const useChatStore = create<ChatState>((set) => ({
   connectionStatus: 'disconnected',
   setConnectionStatus: (status) => set({ connectionStatus: status }),
 
-  // 수동 연결 제어
-  shouldConnect: false,
+  // 연결 제어 (기본값 true: 로그인 시 자동 연결)
+  shouldConnect: true,
   setShouldConnect: (shouldConnect) => set({ shouldConnect }),
 }));

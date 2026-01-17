@@ -13,10 +13,11 @@
 
 ## Features
 
-- Google OAuth 2.0 로그인
-- 실시간 채팅 (WebSocket)
-- 채팅방 생성/관리
-- JWT 토큰 기반 인증
+- **Google OAuth 2.0 로그인** - 최초 로그인 시 자동 사용자 등록
+- **JWT 인증** - Access Token (1시간) / Refresh Token (7일)
+- **실시간 채팅** - WebSocket + JWT 토큰 인증
+- **채팅방 생성/관리** - 이름, 설명 입력
+- **프로필 이미지 프록시** - Valkey 캐싱으로 외부 이미지 서버 부하 방지
 
 ## Quick Start
 
@@ -104,11 +105,27 @@ See [Backend README](./backend/README.md) for detailed API documentation.
 ### Authentication Flow
 
 ```
-1. User clicks "Google Login"
-2. Redirect to Google OAuth
-3. Google callback → Server issues JWT
-4. Frontend stores token
-5. Subsequent requests use Authorization header
+1. 프론트엔드에서 "Google 로그인" 클릭
+2. GET /api/v1/auth/google → Google OAuth URL 반환
+3. Google 로그인 완료 → /api/v1/auth/oauth2/callback/google 콜백
+4. 서버에서 JWT (Access + Refresh Token) 발급
+5. 프론트엔드 localStorage에 토큰 저장
+6. API 요청 시 Authorization: Bearer {token} 헤더 사용
+7. WebSocket 연결 시 ?token={accessToken} 쿼리 파라미터 사용
+```
+
+### Avatar Image Proxy
+
+프로필 이미지는 서버 프록시를 통해 제공됩니다 (Google 429 에러 방지).
+
+```
+GET /api/v1/avatar/{userId}
+  ↓
+Valkey 캐시 확인 (24시간 TTL)
+  ↓
+Cache Miss → Google 이미지 다운로드 → Valkey 저장
+  ↓
+이미지 바이너리 응답
 ```
 
 ## Development

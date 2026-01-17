@@ -1,14 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useChatStore } from '@/stores/useChatStore';
 import { useChatWebSocket } from '@/hooks/useWebSocket';
 import { messageApi } from '@/api';
+import { inviteApi } from '@/api/inviteApi';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
+import { Button } from '@/components/ui/button';
+import { Link, Check } from 'lucide-react';
 
 export function ChatRoom() {
-  const { currentRoomId, rooms, typingUsersByRoom, setMessages, connectionStatus } = useChatStore();
+  const { currentRoomId, rooms, typingUsersByRoom, setMessages } = useChatStore();
   const { joinRoom, leaveRoom, isConnected } = useChatWebSocket();
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const isCopyingRef = useRef(false);
 
   const currentRoom = rooms.find((room) => room.id === currentRoomId);
   const typingUsers = currentRoomId ? typingUsersByRoom[currentRoomId] || [] : [];
@@ -46,6 +52,25 @@ export function ChatRoom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentRoomId, isConnected]);
 
+  // 초대 링크 복사
+  const handleCopyInviteLink = async () => {
+    if (!currentRoomId || isCopyingRef.current) return;
+
+    isCopyingRef.current = true;
+    setIsCopying(true);
+    try {
+      const invite = await inviteApi.create(currentRoomId);
+      await navigator.clipboard.writeText(invite.inviteUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to create invite:', error);
+    } finally {
+      isCopyingRef.current = false;
+      setIsCopying(false);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* 헤더 */}
@@ -61,11 +86,29 @@ export function ChatRoom() {
               </p>
             )}
           </div>
-          {connectionStatus !== 'connected' && currentRoomId && (
-            <span className="text-xs text-amber-500">
-              서버 연결 필요
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {currentRoom && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyInviteLink}
+                disabled={isCopying}
+                title="초대 링크 복사"
+              >
+                {isCopied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1" />
+                    복사됨
+                  </>
+                ) : (
+                  <>
+                    <Link className="h-4 w-4 mr-1" />
+                    {isCopying ? '복사 중...' : '초대 링크'}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

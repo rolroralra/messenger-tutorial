@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         // Public endpoints
                         .pathMatchers("/api/v1/auth/**").permitAll()
+                        .pathMatchers("/api/v1/avatar/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/invites/{code}").permitAll()
                         .pathMatchers("/ws/**").permitAll()
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Protected endpoints

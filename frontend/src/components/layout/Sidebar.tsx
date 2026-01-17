@@ -1,10 +1,12 @@
 import { useChatStore } from '@/stores/useChatStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CreateRoomModal } from '@/components/chat/CreateRoomModal';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Wifi, WifiOff } from 'lucide-react';
+import { getAvatarUrl } from '@/lib/avatar';
+import { MessageSquare, Wifi, WifiOff, LogOut } from 'lucide-react';
 
 export function Sidebar() {
   const {
@@ -17,8 +19,15 @@ export function Sidebar() {
     setShouldConnect,
   } = useChatStore();
 
+  const logout = useAuthStore((state) => state.logout);
+
   const handleToggleConnection = () => {
     setShouldConnect(!shouldConnect);
+  };
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
   };
 
   return (
@@ -27,7 +36,7 @@ export function Sidebar() {
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={currentUser?.avatarUrl} />
+            <AvatarImage src={getAvatarUrl(currentUser?.id)} />
             <AvatarFallback>
               {currentUser?.displayName?.charAt(0).toUpperCase() || '?'}
             </AvatarFallback>
@@ -38,7 +47,8 @@ export function Sidebar() {
             </p>
             <p className={cn(
               'text-xs',
-              connectionStatus === 'connected' ? 'text-green-500' : 'text-muted-foreground'
+              connectionStatus === 'connected' ? 'text-green-500' :
+              connectionStatus === 'disconnected' ? 'text-rose-500' : 'text-muted-foreground'
             )}>
               {connectionStatus === 'connected' ? '온라인' :
                connectionStatus === 'connecting' ? '연결 중...' : '오프라인'}
@@ -49,7 +59,10 @@ export function Sidebar() {
             size="icon"
             onClick={handleToggleConnection}
             title={shouldConnect ? '연결 끊기' : '서버 연결'}
-            className="flex-shrink-0"
+            className={cn(
+              'flex-shrink-0',
+              connectionStatus === 'disconnected' && 'border-rose-300 text-rose-500 hover:bg-rose-50 hover:text-rose-600'
+            )}
           >
             {connectionStatus === 'connected' ? (
               <Wifi className="h-4 w-4" />
@@ -58,6 +71,15 @@ export function Sidebar() {
             ) : (
               <WifiOff className="h-4 w-4" />
             )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            title="로그아웃"
+            className="flex-shrink-0"
+          >
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
