@@ -21,6 +21,9 @@ public class User {
     @Id
     private UUID id;
 
+    @Column("email")
+    private String email;
+
     @Column("username")
     private String username;
 
@@ -33,6 +36,12 @@ public class User {
     @Column("status")
     @Builder.Default
     private String status = "OFFLINE";
+
+    @Column("oauth_provider")
+    private String oauthProvider;
+
+    @Column("oauth_id")
+    private String oauthId;
 
     @Column("created_at")
     private OffsetDateTime createdAt;

@@ -1,13 +1,21 @@
 -- 사용자 테이블
 CREATE TABLE IF NOT EXISTS users (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username        VARCHAR(50) NOT NULL UNIQUE,
+    email           VARCHAR(255),
+    username        VARCHAR(50) UNIQUE,
     display_name    VARCHAR(100) NOT NULL,
     avatar_url      VARCHAR(500),
     status          VARCHAR(20) DEFAULT 'OFFLINE',
+    oauth_provider  VARCHAR(20),
+    oauth_id        VARCHAR(255),
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- 기존 테이블에 OAuth 관련 컬럼 추가 (마이그레이션)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(20);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_id VARCHAR(255);
 
 -- 인덱스: 사용자명 검색
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);

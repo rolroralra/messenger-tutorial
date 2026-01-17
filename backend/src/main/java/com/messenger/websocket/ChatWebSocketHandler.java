@@ -2,6 +2,7 @@ package com.messenger.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.messenger.auth.service.JwtService;
 import com.messenger.message.entity.Message;
 import com.messenger.message.repository.MessageRepository;
 import com.messenger.user.entity.User;
@@ -33,6 +34,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ReactiveRedisTemplate<String, String> redisTemplate;
+    private final JwtService jwtService;
 
     // 세션 관리
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
@@ -49,12 +51,26 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         sessions.put(sessionId, session);
         log.info("WebSocket connected: {}", sessionId);
 
-        // URL 쿼리에서 userId 추출 (간단한 인증)
+        // URL 쿼리에서 JWT 토큰 추출 및 검증
         String query = session.getHandshakeInfo().getUri().getQuery();
-        UUID userId = extractUserId(query);
+        String token = extractToken(query);
+        UUID userId = null;
+
+        if (token != null && jwtService.validateToken(token)) {
+            userId = jwtService.extractUserId(token);
+            log.info("WebSocket authenticated user: {}", userId);
+        } else {
+            // 후방 호환성: userId 파라미터도 지원 (개발 중에만)
+            userId = extractUserId(query);
+            if (userId != null) {
+                log.warn("WebSocket using legacy userId parameter - please migrate to JWT token");
+            }
+        }
 
         if (userId != null) {
             sessionUserMap.put(sessionId, userId);
+        } else {
+            log.warn("WebSocket connection without valid authentication: {}", sessionId);
         }
 
         Flux<org.springframework.web.reactive.socket.WebSocketMessage> outbound = messageSink.asFlux()
@@ -253,6 +269,21 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 
         Set<String> roomSessions = roomSessionsMap.get(roomId);
         return roomSessions != null && roomSessions.contains(sessionId);
+    }
+
+    private String extractToken(String query) {
+        if (query == null) return null;
+        try {
+            for (String param : query.split("&")) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length == 2 && "token".equals(keyValue[0])) {
+                    return keyValue[1];
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract token from query: {}", query);
+        }
+        return null;
     }
 
     private UUID extractUserId(String query) {

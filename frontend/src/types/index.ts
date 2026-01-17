@@ -1,10 +1,19 @@
 // User 타입
 export interface User {
   id: string;
+  email?: string;
   username: string;
   displayName: string;
   avatarUrl?: string;
   status: 'ONLINE' | 'OFFLINE' | 'AWAY';
+  oauthProvider?: string;
+}
+
+// Auth 응답 타입
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
 }
 
 // ChatRoom 타입
