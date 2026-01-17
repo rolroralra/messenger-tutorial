@@ -278,32 +278,32 @@ frontend/
 ## 7. 구현 단계
 
 ### Phase 1: 프로젝트 기반 구축
-- [ ] Spring Boot 프로젝트 생성
-- [ ] Docker Compose 설정 (PostgreSQL, Valkey)
-- [ ] Vite + React + TypeScript 프로젝트 생성
-- [ ] Tailwind CSS + Shadcn UI 설정
+- [x] Spring Boot 프로젝트 생성
+- [x] Docker Compose 설정 (PostgreSQL, Valkey)
+- [x] Vite + React + TypeScript 프로젝트 생성
+- [x] Tailwind CSS + Shadcn UI 설정
 
 ### Phase 2: 사용자 및 채팅방 기능
-- [ ] User CRUD API
-- [ ] ChatRoom CRUD API
-- [ ] 프론트엔드 기본 레이아웃
-- [ ] 채팅방 목록/생성 UI
+- [x] User CRUD API
+- [x] ChatRoom CRUD API
+- [x] 프론트엔드 기본 레이아웃
+- [x] 채팅방 목록/생성 UI
 
 ### Phase 3: 실시간 메시징
-- [ ] WebSocket 설정 및 핸들러
+- [x] WebSocket 설정 및 핸들러
 - [ ] Redis Pub/Sub 연동
-- [ ] 메시지 저장 및 브로드캐스트
-- [ ] 프론트엔드 WebSocket 훅
-- [ ] 실시간 메시지 UI (React Virtuoso)
+- [x] 메시지 저장 및 브로드캐스트
+- [x] 프론트엔드 WebSocket 훅
+- [x] 실시간 메시지 UI (React Virtuoso)
 
 ### Phase 4: 고급 기능
-- [ ] 메시지 페이지네이션
-- [ ] 타이핑 인디케이터
+- [x] 메시지 페이지네이션
+- [x] 타이핑 인디케이터
 - [ ] 온라인 상태 표시
 - [ ] 반응형 레이아웃
 
 ### Phase 5: 테스트 및 최적화
-- [ ] 단위/통합 테스트
+- [x] 단위/통합 테스트
 - [ ] 성능 최적화
 - [ ] 배포 설정
 
