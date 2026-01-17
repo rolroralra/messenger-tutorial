@@ -41,6 +41,15 @@ export interface Message {
   createdAt: string;
 }
 
+// RoomInvite 타입
+export interface RoomInviteResponse {
+  roomId: string;
+  roomName: string;
+  inviteCode: string;
+  inviteUrl: string;
+  createdAt?: string;
+}
+
 // WebSocket 메시지 타입
 export type MessageType = 'CHAT' | 'JOIN' | 'LEAVE' | 'TYPING' | 'USER_JOINED' | 'USER_LEFT' | 'ERROR';
 

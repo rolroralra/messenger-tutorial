@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LoginPage } from '@/pages/LoginPage';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage';
+import { InvitePage } from '@/pages/InvitePage';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useChatStore } from '@/stores/useChatStore';
 import { roomApi } from '@/api';
@@ -91,6 +92,7 @@ function App() {
         }
       />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/invite/:code" element={<InvitePage />} />
       <Route
         path="/"
         element={

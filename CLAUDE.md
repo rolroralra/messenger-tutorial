@@ -23,6 +23,8 @@ git checkout -b feature/6
 
 ## Commit Convention
 
+[git-commit-instructions](.github/git-commit-instructions.md)
+
 ### 커밋 메시지 형식
 
 ```

@@ -26,6 +26,9 @@ export function MessageInput() {
   }, [message, isConnected, currentRoomId, sendChatMessage, sendTypingStatus]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // IME 조합 중에는 Enter 무시 (한글 등)
+    if (e.nativeEvent.isComposing) return;
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();

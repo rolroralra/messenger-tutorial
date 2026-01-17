@@ -80,7 +80,7 @@ public class MessageService {
                                     : null)
                             .hasMore(hasMore)
                             .build());
-        });
+        }).cache();
     }
 
     public Mono<Void> deleteMessage(UUID messageId, UUID userId) {
