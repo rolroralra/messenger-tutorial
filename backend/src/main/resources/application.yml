@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: web-messenger
+
+  # R2DBC PostgreSQL 설정
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/messenger
+    username: messenger
+    password: messenger
+
+  # Redis 설정 (Valkey 호환)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # Docker Compose Support
+  docker:
+    compose:
+      lifecycle-management: start_and_stop
+
+# 서버 설정
+server:
+  port: 8080
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.messenger: DEBUG
+    org.springframework.web.reactive: DEBUG
