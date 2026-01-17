@@ -16,4 +16,10 @@ public interface UserRepository extends R2dbcRepository<User, UUID> {
     Flux<User> findByUsernameContainingIgnoreCase(String username);
 
     Mono<Boolean> existsByUsername(String username);
+
+    Mono<User> findByEmail(String email);
+
+    Mono<Boolean> existsByEmail(String email);
+
+    Mono<User> findByOauthProviderAndOauthId(String oauthProvider, String oauthId);
 }

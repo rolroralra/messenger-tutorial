@@ -1,38 +1,49 @@
+import { useAuthStore } from '@/stores/useAuthStore';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
 interface RequestOptions extends RequestInit {
-  userId?: string;
+  skipAuth?: boolean;
 }
 
 class ApiClient {
   private baseUrl: string;
-  private userId: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
-  setUserId(userId: string) {
-    this.userId = userId;
+  private getAccessToken(): string | null {
+    return useAuthStore.getState().accessToken;
   }
 
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { userId, ...fetchOptions } = options;
+    const { skipAuth, ...fetchOptions } = options;
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
     };
 
-    const effectiveUserId = userId || this.userId;
-    if (effectiveUserId) {
-      (headers as Record<string, string>)['X-User-Id'] = effectiveUserId;
+    // JWT 토큰 추가 (skipAuth가 아닌 경우)
+    if (!skipAuth) {
+      const token = this.getAccessToken();
+      if (token) {
+        (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+      }
     }
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...fetchOptions,
       headers,
     });
+
+    // 401 Unauthorized - 로그아웃 처리
+    if (response.status === 401) {
+      useAuthStore.getState().logout();
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'An error occurred' }));

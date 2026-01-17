@@ -1,13 +1,13 @@
 import { useCallback, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useChatStore } from '@/stores/useChatStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import type { WebSocketMessage, Message } from '@/types';
 
 const WS_URL = 'ws://localhost:8080/ws/chat';
 
 export function useChatWebSocket() {
   const {
-    currentUser,
     currentRoomId,
     addMessage,
     setTypingUsers,
@@ -15,9 +15,11 @@ export function useChatWebSocket() {
     shouldConnect,
   } = useChatStore();
 
-  // shouldConnect가 true이고 currentUser가 있을 때만 연결
-  const socketUrl = shouldConnect && currentUser
-    ? `${WS_URL}?userId=${currentUser.id}`
+  const { accessToken } = useAuthStore();
+
+  // shouldConnect가 true이고 accessToken이 있을 때만 연결
+  const socketUrl = shouldConnect && accessToken
+    ? `${WS_URL}?token=${accessToken}`
     : null;
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
